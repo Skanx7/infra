@@ -1,0 +1,56 @@
+#!/bin/bash
+set -e
+echo "Creating additional database users with descriptions..."
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+
+    -- 1. CREATE WORKER USER (Ingestion)
+    DO \$\$
+    BEGIN
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$POSTGRES_WORKER_USER') THEN
+            CREATE ROLE "$POSTGRES_WORKER_USER" WITH LOGIN PASSWORD '$POSTGRES_WORKER_PASSWORD';
+            GRANT CONNECT ON DATABASE "$POSTGRES_DB" TO "$POSTGRES_WORKER_USER";
+            GRANT USAGE ON SCHEMA public TO "$POSTGRES_WORKER_USER";
+            GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "$POSTGRES_WORKER_USER";
+            GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "$POSTGRES_WORKER_USER";
+
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO "$POSTGRES_WORKER_USER";
+        END IF;
+    END
+    \$\$;
+    COMMENT ON ROLE "$POSTGRES_WORKER_USER" IS 'Ingestion Worker: High-privilege account for writing bulk data (Stock prices, Wiki dumps)';
+
+    -- 2. CREATE APP USER (Backend API)
+    DO \$\$
+    BEGIN
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$POSTGRES_APP_USER') THEN
+            CREATE ROLE "$POSTGRES_APP_USER" WITH LOGIN PASSWORD '$POSTGRES_APP_PASSWORD';
+            GRANT CONNECT ON DATABASE "$POSTGRES_DB" TO "$POSTGRES_APP_USER";
+            GRANT USAGE ON SCHEMA public TO "$POSTGRES_APP_USER";
+            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "$POSTGRES_APP_USER";
+            
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "$POSTGRES_APP_USER";
+        END IF;
+    END
+    \$\$;
+
+    COMMENT ON ROLE "$POSTGRES_APP_USER" IS 'Backend API: Standard Read/Write access for the web application';
+
+
+    -- 3. CREATE FRONTEND USER (Read-Only)
+    DO \$\$
+    BEGIN
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$POSTGRES_FRONTEND_USER') THEN
+            CREATE ROLE "$POSTGRES_FRONTEND_USER" WITH LOGIN PASSWORD '$POSTGRES_FRONTEND_PASSWORD';
+            GRANT CONNECT ON DATABASE "$POSTGRES_DB" TO "$POSTGRES_FRONTEND_USER";
+            GRANT USAGE ON SCHEMA public TO "$POSTGRES_FRONTEND_USER";
+            GRANT SELECT ON ALL TABLES IN SCHEMA public TO "$POSTGRES_FRONTEND_USER";
+            
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO "$POSTGRES_FRONTEND_USER";
+        END IF;
+    END
+    \$\$;
+
+    COMMENT ON ROLE "$POSTGRES_FRONTEND_USER" IS 'Frontend/Analytics: Read-only access for dashboards and visualization';
+
+EOSQL
