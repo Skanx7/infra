@@ -1,0 +1,127 @@
+[
+  {
+    "model_key": "bge-m3",
+    "model_name": "BAAI/bge-m3",
+    "embedding_dim": 1024,
+    "provider": "local",
+    "metadata": {
+      "category": "Gold Standard",
+      "description": "The current SOTA for versatile dense, sparse, and multi-vector retrieval. Excellent for Wikipedia entities.",
+      "huggingface_url": "https://huggingface.co/BAAI/bge-m3",
+      "context_window": 8192
+    }
+  },
+  {
+    "model_key": "finance-investopedia",
+    "model_name": "FinLang/finance-embeddings-investopedia",
+    "embedding_dim": 768,
+    "provider": "local",
+    "metadata": {
+      "category": "Finance Specialist",
+      "description": "Fine-tuned specifically on Investopedia; understands financial jargon better than general models.",
+      "huggingface_url": "https://huggingface.co/FinLang/finance-embeddings-investopedia"
+    }
+  },
+  {
+    "model_key": "gte-qwen2-7b",
+    "model_name": "Alibaba-NLP/gte-Qwen2-7B-instruct",
+    "embedding_dim": 3584,
+    "provider": "local",
+    "metadata": {
+      "category": "Finance Specialist",
+      "description": "Massive 7B parameter embedding model. State-of-the-art reasoning capabilities for complex financial queries.",
+      "huggingface_url": "https://huggingface.co/Alibaba-NLP/gte-Qwen2-7B-instruct",
+      "requires_high_vram": true
+    }
+  },
+  {
+    "model_key": "finbert",
+    "model_name": "ProsusAI/finbert",
+    "embedding_dim": 768,
+    "provider": "local",
+    "metadata": {
+      "category": "Finance Specialist",
+      "description": "The classic BERT model pre-trained on financial text (sentiment focus).",
+      "huggingface_url": "https://huggingface.co/ProsusAI/finbert"
+    }
+  },
+  {
+    "model_key": "nomic-embed-v1.5",
+    "model_name": "nomic-ai/nomic-embed-text-v1.5",
+    "embedding_dim": 768,
+    "provider": "local",
+    "metadata": {
+      "category": "Matryoshka / Dynamic",
+      "description": "Supports Matryoshka learning; customizable dimensions (64 to 768).",
+      "huggingface_url": "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5",
+      "matryoshka_support": true
+    }
+  },
+  {
+    "model_key": "snowflake-arctic-l",
+    "model_name": "Snowflake/snowflake-arctic-embed-l-v2.0",
+    "embedding_dim": 1024,
+    "provider": "local",
+    "metadata": {
+      "category": "Matryoshka / Dynamic",
+      "description": "Enterprise-grade, optimized for SQL/database retrieval workloads.",
+      "huggingface_url": "https://huggingface.co/Snowflake/snowflake-arctic-embed-l-v2.0"
+    }
+  },
+  {
+    "model_key": "stella-en-1.5b",
+    "model_name": "NovaSearch/stella_en_1.5B_v5",
+    "embedding_dim": 1024,
+    "provider": "local",
+    "metadata": {
+      "category": "Matryoshka / Dynamic",
+      "description": "High performance 1.5B model, excellent balance of size and accuracy.",
+      "huggingface_url": "https://huggingface.co/NovaSearch/stella_en_1.5B_v5"
+    }
+  },
+  {
+    "model_key": "all-minilm-l12",
+    "model_name": "sentence-transformers/all-MiniLM-L12-v2",
+    "embedding_dim": 384,
+    "provider": "local",
+    "metadata": {
+      "category": "Lightweight",
+      "description": "Extremely fast, low memory. Perfect for initial high-volume filtering.",
+      "huggingface_url": "https://huggingface.co/sentence-transformers/all-MiniLM-L12-v2"
+    }
+  },
+  {
+    "model_key": "bge-small-en-v1.5",
+    "model_name": "BAAI/bge-small-en-v1.5",
+    "embedding_dim": 384,
+    "provider": "local",
+    "metadata": {
+      "category": "Lightweight",
+      "description": "Better accuracy than MiniLM while remaining very lightweight.",
+      "huggingface_url": "https://huggingface.co/BAAI/bge-small-en-v1.5"
+    }
+  },
+  {
+    "model_key": "nv-embed-v2",
+    "model_name": "nvidia/NV-Embed-v2",
+    "embedding_dim": 4096,
+    "provider": "local",
+    "metadata": {
+      "category": "Deep Thinking",
+      "description": "Top-tier leaderboard performance. Handles long context very well.",
+      "huggingface_url": "https://huggingface.co/nvidia/NV-Embed-v2",
+      "context_window": 32768
+    }
+  },
+  {
+    "model_key": "multilingual-e5-large",
+    "model_name": "intfloat/multilingual-e5-large",
+    "embedding_dim": 1024,
+    "provider": "local",
+    "metadata": {
+      "category": "Multilingual",
+      "description": "Strong baseline for mixed-language content (European market news).",
+      "huggingface_url": "https://huggingface.co/intfloat/multilingual-e5-large"
+    }
+  }
+]
