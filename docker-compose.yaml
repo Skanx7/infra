@@ -1,0 +1,14 @@
+services:
+  postgres:
+    container_name: postgres
+    build: ./postgres
+    env_file:
+      - .env
+    ports:
+      - "${POSTGRES_HOST_PORT}:${POSTGRES_CONTAINER_PORT}"
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:
