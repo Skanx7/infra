@@ -1,22 +1,4 @@
-
-CREATE OR REPLACE FUNCTION normalize_identifier(input TEXT)
-RETURNS TEXT
-LANGUAGE plpgsql
-IMMUTABLE
-AS $$
-DECLARE
-    normalized TEXT;
-BEGIN
-    normalized := regexp_replace(lower(input), '[^a-z0-9_]+', '_', 'g');
-
-    IF normalized ~ '^[a-z_]' THEN
-        RETURN normalized;
-    END IF;
-
-    RETURN 't_' || normalized;
-END;
-$$;
----------------------- Table to register which embedding tables to create based on model_key and content_type ---------------------
+---------- Embedding registry -----------------------------
 CREATE TABLE IF NOT EXISTS embedding_registry (
     model_key TEXT NOT NULL,
     content_type TEXT NOT NULL,
@@ -25,6 +7,7 @@ CREATE TABLE IF NOT EXISTS embedding_registry (
         normalize_identifier(model_key || '_' || content_type)
     ) STORED,
     
+    is_default BOOLEAN DEFAULT FALSE,  -- Flag pour indiquer le modèle par défaut à utiliser pour ce content_type (ex: news)
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
 
@@ -32,9 +15,15 @@ CREATE TABLE IF NOT EXISTS embedding_registry (
     FOREIGN KEY (model_key) REFERENCES embedding_models(model_key) ON DELETE CASCADE
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS unique_default_per_type 
+ON embedding_registry (content_type) 
+WHERE is_default = TRUE;
+
 CALL set_auto_update('embedding_registry');
 
+
 --------------------- Trigger to auto-create embedding tables ---------------------
+
 CREATE OR REPLACE FUNCTION trigger_create_embedding_table()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -51,6 +40,7 @@ BEGIN
         CREATE TABLE IF NOT EXISTS %I (
             record_id UUID NOT NULL,
             published_at TIMESTAMPTZ NOT NULL,
+            chunk_content TEXT,
             chunk_index INTEGER NOT NULL DEFAULT 0,
             embedding vector(%s),
             
@@ -75,50 +65,52 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE PROCEDURE setup_embedding_trigger()
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    EXECUTE '
-        CREATE OR REPLACE TRIGGER create_embedding_table_trigger
-        AFTER INSERT ON embedding_registry
-        FOR EACH ROW
-        EXECUTE FUNCTION trigger_create_embedding_table()';
-END;
-$$;
 
-CALL setup_embedding_trigger();
+CREATE OR REPLACE TRIGGER create_embedding_table_trigger
+AFTER INSERT ON embedding_registry
+FOR EACH ROW
+EXECUTE FUNCTION trigger_create_embedding_table();
 
---------------------- Function to retrieve embeddings from the correct table based on model_key and content_type ---------------------
 
-CREATE OR REPLACE FUNCTION get_embedding_table(
-    target_key TEXT, 
-    target_type TEXT DEFAULT 'news'
-)
-RETURNS TABLE (
-    record_id UUID,
-    published_at TIMESTAMPTZ,
-    embedding VECTOR,
-    dim_check INTEGER
-) AS $$
+---------- Trigger to refresh the embedding view when the default model changes -----------------------------
+
+--- This will create views like news_embeddings for instance
+CREATE OR REPLACE FUNCTION refresh_active_embedding_view()
+RETURNS TRIGGER AS $$
 DECLARE
-    target_table TEXT;
-    target_dim INTEGER;
+    rec RECORD;
+    view_name TEXT;
 BEGIN
-    SELECT table_name, embedding_dim 
-    INTO target_table, target_dim
-    FROM embedding_registry er 
-    JOIN embedding_models em ON er.model_key = em.model_key
-    WHERE er.model_key = target_key AND er.content_type = target_type;
+    FOR rec IN 
+        SELECT model_key, content_type, table_name 
+        FROM embedding_registry 
+        WHERE is_default = TRUE 
+          AND content_type = NEW.content_type
+    LOOP
+        view_name := rec.content_type || '_embeddings'; 
 
-    IF target_table IS NULL THEN
-        RAISE EXCEPTION 'Table introuvable pour % / %', target_key, target_type;
-    END IF;
+        EXECUTE format('
+            CREATE OR REPLACE VIEW %I AS 
+            SELECT 
+                record_id, 
+                published_at, 
+                chunk_index, 
+                chunk_content, 
+                embedding,
+                %L::text AS model_key
+            FROM %I', 
+            view_name, rec.model_key, rec.table_name
+        );
+        
+        RAISE NOTICE 'View switched: % now points to % (Model: %)', view_name, rec.table_name, rec.model_key;
+    END LOOP;
 
-    -- Pas de cast complexe, on lit juste la colonne "embedding"
-    RETURN QUERY EXECUTE format(
-        'SELECT record_id, published_at, embedding, %L::INTEGER FROM %I', 
-        target_dim, target_table
-    );
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER auto_switch_embedding_view
+    AFTER INSERT OR UPDATE OF is_default ON embedding_registry
+    FOR EACH ROW
+    WHEN (NEW.is_default = TRUE)
+    EXECUTE FUNCTION refresh_active_embedding_view();
