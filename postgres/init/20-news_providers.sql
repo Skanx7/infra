@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS news_providers (
-    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    provider_id UUID PRIMARY KEY DEFAULT uuidv7(),
     name TEXT NOT NULL UNIQUE,
     domain TEXT NOT NULL UNIQUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
