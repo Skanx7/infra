@@ -35,5 +35,5 @@ END $$;
 INSERT INTO embedding_registry (model_key, content_type)
 SELECT model_key, 'news'
 FROM embedding_models
-WHERE model_key IN ('bge-m3', 'openai-v3')
+WHERE model_key IN ('bge-m3', 'snowflake-arctic-l')
 ON CONFLICT DO NOTHING;
