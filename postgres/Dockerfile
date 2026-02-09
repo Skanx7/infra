@@ -30,6 +30,6 @@ RUN /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y && \
     rm -rf /var/lib/apt/lists/*
 
 COPY ./init/ /docker-entrypoint-initdb.d/
-COPY --from=builder /app/init/02-world.sql /docker-entrypoint-initdb.d/02-world.sql
+COPY --from=builder /app/init/03-world.sql /docker-entrypoint-initdb.d/03-world.sql
 # (timescaledb and pgvector need to be in shared_preload_libraries to work properly)
 CMD ["postgres", "-c", "shared_preload_libraries=timescaledb,vector"]

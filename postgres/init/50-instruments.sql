@@ -1,22 +1,22 @@
 CREATE TABLE IF NOT EXISTS instruments(
-    instrument_id UUID DEFAULT uuidv7(),
-    company_id UUID,
+    instrument_id UUID PRIMARY KEY DEFAULT uuidv7(),
+    company_id UUID REFERENCES assets.companies(company_id) ON DELETE CASCADE,
 
     instrument_code VARCHAR(50) NOT NULL UNIQUE,
     market_id UUID,
     name TEXT NOT NULL,
-    type_code VARCHAR(5) NOT NULL,
-    market_id UUID,
 
-    currency_code VARCHAR(3) NOT NULL,
-    country_code VARCHAR(2) NOT NULL,
+    type_code VARCHAR(5) NOT NULL REFERENCES instruments_type(type_code) ON DELETE RESTRICT,
+    market_id UUID REFERENCES assets.markets(market_id) ON DELETE SET NULL,
 
-    PRIMARY KEY (instrument_id)
-    FOREIGN KEY (company_id) REFERENCES companies(company_id) ON DELETE CASCADE,
-    FOREIGN KEY (type_code) REFERENCES instruments_type(type_code) ON DELETE RESTRICT,
-    FOREIGN KEY (market_id) REFERENCES markets(market_id) ON DELETE SET NULL
-);
+    currency_code VARCHAR(3) NOT NULL REFERENCES world.countries(currency) ON DELETE RESTRICT,
+    country_code VARCHAR(2) NOT NULL REFERENCES world.countries(iso2) ON DELETE RESTRICT,
 
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+)
+
+CALL set_auto_update('instruments');
 
 
 
