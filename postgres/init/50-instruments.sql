@@ -1,4 +1,4 @@
-CREATE IF NOT EXISTS TABLE instruments(
+CREATE TABLE IF NOT EXISTS instruments(
     instrument_id UUID DEFAULT uuidv7(),
     company_id UUID,
 
@@ -22,7 +22,7 @@ CREATE IF NOT EXISTS TABLE instruments(
 
 -- just to not forget the abbreviations
 
-CREATE IF NOT EXISTS TABLE instruments_type(
+CREATE TABLE IF NOT EXISTS instruments_type(
     type_code VARCHAR(10) NOT NULL UNIQUE,
     label TEXT NOT NULL,
 

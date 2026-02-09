@@ -8,7 +8,7 @@ import logging
 # --- CONFIGURATION ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "init"))
-OUTPUT_FILE = os.path.join(OUTPUT_DIR, "02-world.sql")
+OUTPUT_FILE = os.path.join(OUTPUT_DIR, "03-world.sql")
 TEMP_DIR = os.path.join(BASE_DIR, "temp_geonames")
 
 URL_COUNTRIES = "http://download.geonames.org/export/dump/countryInfo.txt"
@@ -114,7 +114,6 @@ def generate_sql():
         f.write("-- =============================================\n")
         f.write("-- 1. SCHEMA DEFINITION\n")
         f.write("-- =============================================\n")
-        f.write("CREATE EXTENSION IF NOT EXISTS postgis;\n")
         f.write("CREATE SCHEMA IF NOT EXISTS world;\n\n")
 
         # Table: Countries
