@@ -1,16 +1,15 @@
 CREATE TABLE IF NOT EXISTS assets.company_locations (
-    id SERIAL PRIMARY KEY,
-    company_id UUID REFERENCES assets.companies(id) ON DELETE CASCADE,
-    
-    location_type TEXT, -- 'headquarters', 'operational', 'rd_center', 'data_center'
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    company_id UUID REFERENCES assets.companies(company_id) ON DELETE CASCADE,
+
+    location_type TEXT,
     is_primary BOOLEAN DEFAULT FALSE,
-    
-    city TEXT REFERENCES world.cities(name) ON DELETE SET NULL,
-    state TEXT REFERENCES world.cities(subdivision_name) ON DELETE SET NULL,
+
+    city_id UUID REFERENCES world.cities(id) ON DELETE SET NULL,
+    state TEXT,
     country_iso2 CHAR(2) REFERENCES world.countries(iso2),
-    postal_code TEXT,
-    coordinates POINT, 
-    
+    coordinates geometry(Point, 4326),
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

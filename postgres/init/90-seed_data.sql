@@ -10,7 +10,7 @@ BEGIN
 
     PERFORM lo_unlink(json_oid);
 
-    INSERT INTO embedding_models (model_key, model_name, embedding_dim, provider, metadata)
+    INSERT INTO embeddings.embedding_models (model_key, model_name, embedding_dim, provider, metadata)
     SELECT 
         item->>'model_key',
         item->>'model_name',
@@ -23,7 +23,7 @@ BEGIN
         model_name = EXCLUDED.model_name,
         embedding_dim = EXCLUDED.embedding_dim,
         provider = EXCLUDED.provider,
-        metadata = embedding_models.metadata || EXCLUDED.metadata,
+        metadata = embeddings.embedding_models.metadata || EXCLUDED.metadata,
         updated_at = NOW();
         
     RAISE NOTICE 'Embedding models loaded from %', json_path;
@@ -32,8 +32,8 @@ EXCEPTION WHEN OTHERS THEN
     RAISE WARNING 'Failed to load embedding models from % : %', json_path, SQLERRM;
 END $$;
 
-INSERT INTO embedding_registry (model_key, content_type)
+INSERT INTO embeddings.embedding_registry (model_key, content_type)
 SELECT model_key, 'news'
-FROM embedding_models
+FROM embeddings.embedding_models
 WHERE model_key IN ('bge-m3', 'snowflake-arctic-l')
 ON CONFLICT DO NOTHING;

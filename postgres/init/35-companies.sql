@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS assets.companies (
     
     -- metadata
     headquarters_country CHAR(2) REFERENCES world.countries(iso2),
-    headquarters_city TEXT,           -- 'Cupertino'
+    headquarters_city TEXT,
     website TEXT,                     -- 'https://www.apple.com'
     founding_year INTEGER,            -- 1976
     employees_count INTEGER,          -- Useful for normalizing metrics (Revenue/Employee)
@@ -29,15 +29,13 @@ CREATE TABLE IF NOT EXISTS assets.companies (
     delisted_date DATE,
 
     description TEXT,                 -- "Designs, manufactures, and markets smartphones..."
-    keywords TEXT[],                  -- ARRAY['Consumer Electronics', 'AI', 'Services']    
+    keywords TEXT[],                  -- ARRAY['Consumer Electronics', 'AI', 'Services']
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 
 );
 
--- Index for join performance
-CREATE INDEX idx_companies_sector ON assets.companies(sector);
-CREATE INDEX idx_companies_cik ON assets.companies(cik); 
 CREATE INDEX idx_companies_isin ON assets.companies(isin);
 
 -- Index for simple text search (before vector)
@@ -45,4 +43,4 @@ CREATE INDEX idx_companies_name_trgm ON assets.companies USING GIN (name gin_trg
 CREATE INDEX idx_companies_short_name_trgm ON assets.companies USING GIN (short_name gin_trgm_ops);
 
 -- Trigger for updated_at
-CALL set_auto_update('companies');
+CALL set_auto_update('assets.companies');
