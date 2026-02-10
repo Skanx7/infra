@@ -1,0 +1,3 @@
+user default off
+user ${REDIS_WORKER_USER} on >${REDIS_WORKER_PASSWORD} allkeys allcommands ~*
+user ${REDIS_APP_USER} on >${REDIS_APP_PASSWORD} allkeys allcommands ~*
