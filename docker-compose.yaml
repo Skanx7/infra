@@ -9,6 +9,16 @@ services:
     
     volumes:
       - postgres_data:/var/lib/postgresql
-
+  redis:
+    container_name: redis
+    build: ./redis
+    env_file:
+      - .env
+    ports:
+      - "${REDIS_HOST_PORT}:${REDIS_CONTAINER_PORT}"
+    entrypoint: 
+    volumes:
+      - redis_data:/data
 volumes:
   postgres_data:
+  redis_data:
