@@ -9,6 +9,13 @@ services:
     
     volumes:
       - postgres_data:/var/lib/postgresql
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
   redis:
     container_name: redis
     build: ./redis
@@ -16,9 +23,22 @@ services:
       - .env
     ports:
       - "${REDIS_HOST_PORT}:${REDIS_CONTAINER_PORT}"
-    entrypoint: 
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--user", "${REDIS_WORKER_USER}", "--pass", "${REDIS_WORKER_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: always
+  redis-init:
+    container_name: redis-init
+    build: ./redis-init
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    restart: "no"
 volumes:
   postgres_data:
   redis_data:

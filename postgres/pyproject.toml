@@ -1,5 +1,5 @@
 [project]
-name = "financial-rag-seeder"
+name = "postgres-init"
 version = "0.1.0"
 description = "Scripts pour générer les données initiales (S&P500, etc.)"
 requires-python = ">=3.11"

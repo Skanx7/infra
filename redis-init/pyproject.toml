@@ -1,0 +1,13 @@
+[project]
+name = "redis-init"
+version = "0.1.0"
+description = "A tool to initialize scripts for Redis"
+requires-python = ">=3.11"
+
+dependencies = [
+    "redis>=4.0.0"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
