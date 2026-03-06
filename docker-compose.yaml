@@ -6,9 +6,10 @@ services:
       - .env
     ports:
       - "${POSTGRES_HOST_PORT}:${POSTGRES_CONTAINER_PORT}"
-    
     volumes:
       - postgres_data:/var/lib/postgresql
+    networks:
+      - shared_ai_net
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
@@ -16,6 +17,19 @@ services:
       timeout: 30s
       retries: 5
       start_period: 30s
+
+  postgres-init:
+    container_name: postgres-init
+    build: ./postgres-init
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - shared_ai_net
+    restart: "no"
+
   redis:
     container_name: redis
     build: ./redis
@@ -25,20 +39,66 @@ services:
       - "${REDIS_HOST_PORT}:${REDIS_CONTAINER_PORT}"
     volumes:
       - redis_data:/data
+    networks:
+      - shared_ai_net
     healthcheck:
       test: ["CMD", "redis-cli", "--user", "${REDIS_WORKER_USER}", "--pass", "${REDIS_WORKER_PASSWORD}", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
     restart: always
+
   redis-init:
     container_name: redis-init
     build: ./redis-init
     env_file:
       - .env
+    networks:
+      - shared_ai_net
     depends_on:
       - redis
     restart: "no"
+
+  # --- NEW: The Ollama Inference Engine ---
+  ollama-engine:
+    image: ollama/ollama:latest
+    container_name: ollama-engine
+    ports:
+      - "11435:11434" # Ollama's default port
+    volumes:
+      - ./ollama_models:/root/.ollama # Saves your downloaded models locally
+    networks:
+      - shared_ai_net
+    environment:
+      # THE MAGIC TRICK: Unloads the model from VRAM immediately after answering
+      - OLLAMA_KEEP_ALIVE=0 
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+  open-webui:
+      image: ghcr.io/open-webui/open-webui:main
+      container_name: open-webui
+      ports:
+        - "3000:8080" # Access via http://localhost:3000
+      volumes:
+        - open-webui_data:/app/backend/data
+      networks:
+        - shared_ai_net
+      environment:
+        - OLLAMA_BASE_URL=http://ollama-engine:11434
+      depends_on:
+        - ollama-engine
+      restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
+  open-webui_data:
+
+networks:
+  shared_ai_net:
+    driver: bridge
